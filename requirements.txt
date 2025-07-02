@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+streamlit
+transformers
+torch
+sentencepiece
+httpx          # для тестирования FastAPI
+pytest         # для запуска тестов

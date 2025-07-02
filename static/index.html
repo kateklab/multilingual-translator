@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Переводчик на mBART</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+    textarea {
+      width: 100%;
+      height: 100px;
+    }
+    select, button {
+      margin-top: 10px;
+      width: 100%;
+      padding: 10px;
+    }
+    #result, #reverse {
+      margin-top: 20px;
+      padding: 10px;
+      background: #f0f0f0;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌍 Переводчик на mBART</h1>
+
+  <textarea id="inputText" placeholder="Введите текст для перевода..."></textarea>
+
+  <label for="srcLang">Исходный язык:</label>
+  <select id="srcLang">
+    <option value="en_XX">Английский</option>
+    <option value="ru_RU">Русский</option>
+    <option value="fr_XX">Французский</option>
+    <option value="de_DE">Немецкий</option>
+    <option value="es_XX">Испанский</option>
+  </select>
+
+  <label for="tgtLang">Целевой язык:</label>
+  <select id="tgtLang">
+    <option value="ru_RU">Русский</option>
+    <option value="en_XX">Английский</option>
+    <option value="fr_XX">Французский</option>
+    <option value="de_DE">Немецкий</option>
+    <option value="es_XX">Испанский</option>
+  </select>
+
+  <button id="translateBtn">Перевести</button>
+  <button id="reverseBtn" style="display: none;">Обратный перевод</button>
+
+  <div id="result"></div>
+  <div id="reverse"></div>
+
+  <script>
+    let lastTranslation = "";
+
+    document.getElementById("translateBtn").addEventListener("click", async () => {
+      const text = document.getElementById("inputText").value;
+      const source_lang = document.getElementById("srcLang").value;
+      const target_lang = document.getElementById("tgtLang").value;
+
+      const response = await fetch("/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, source_lang, target_lang })
+      });
+
+      if (!response.ok) {
+        document.getElementById("result").innerHTML = "Ошибка перевода 😢";
+        return;
+      }
+
+      const data = await response.json();
+      lastTranslation = data.translated_text;
+
+      document.getElementById("result").innerHTML =
+        `<strong>Перевод:</strong><br>${lastTranslation}`;
+      document.getElementById("reverseBtn").style.display = "block";
+      document.getElementById("reverse").innerHTML = "";
+    });
+
+    document.getElementById("reverseBtn").addEventListener("click", async () => {
+      const source_lang = document.getElementById("srcLang").value;
+      const target_lang = document.getElementById("tgtLang").value;
+
+      const response = await fetch("/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: lastTranslation,
+          source_lang: target_lang,
+          target_lang: source_lang
+        })
+      });
+
+      if (!response.ok) {
+        document.getElementById("reverse").innerHTML = "Ошибка обратного перевода 😢";
+        return;
+      }
+
+      const data = await response.json();
+      document.getElementById("reverse").innerHTML =
+        `<strong>Обратный перевод:</strong><br>${data.translated_text}`;
+    });
+  </script>
+</body>
+</html>
